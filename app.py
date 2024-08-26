@@ -4,42 +4,15 @@ import matplotlib.pyplot as plt
 import io
 import base64
 import os
-from flask_sqlalchemy import SQLAlchemy
+from models import db, Location, Forecast
 from datetime import datetime
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///solar_forecast.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+db.init_app(app)
 
 SOLCAST_API_KEY = os.environ.get('SOLCAST_API_KEY')
-
-class Location(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    api_key = db.Column(db.String(100))
-    latitude = db.Column(db.Float, nullable=False)
-    longitude = db.Column(db.Float, nullable=False)
-    grid_substation = db.Column(db.String(100))
-    feeder_number = db.Column(db.String(50))
-    forecasts = db.relationship('Forecast', backref='location', lazy=True)
-
-class Forecast(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    location_id = db.Column(db.Integer, db.ForeignKey('location.id'), nullable=False)
-    timestamp = db.Column(db.DateTime, nullable=False)
-    ghi = db.Column(db.Float)
-    ghi90 = db.Column(db.Float)
-    ghi10 = db.Column(db.Float)
-    ebh = db.Column(db.Float)
-    dni = db.Column(db.Float)
-    dni10 = db.Column(db.Float)
-    dni90 = db.Column(db.Float)
-    dhi = db.Column(db.Float)
-    air_temp = db.Column(db.Float)
-    zenith = db.Column(db.Float)
-    azimuth = db.Column(db.Float)
-    cloud_opacity = db.Column(db.Float)
 
 @app.route('/')
 def index():
@@ -136,22 +109,6 @@ def delete_location(id):
     db.session.delete(location)
     db.session.commit()
     return redirect(url_for('index'))
-
-@app.cli.command("init-db")
-def init_db():
-    db.create_all()
-    if Location.query.count() == 0:
-        solar_one = Location(
-            name="Solar_One_Plant",
-            latitude=7.976510,
-            longitude=81.236602,
-            api_key="kAVziMj4__x-RQ9Ab67-TBwv2ry_Z9uY",
-            grid_substation="Polonnaruwa GSS",
-            feeder_number="Feeder_01"
-        )
-        db.session.add(solar_one)
-        db.session.commit()
-    print("Database initialized.")
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
