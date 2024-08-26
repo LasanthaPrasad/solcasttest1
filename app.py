@@ -21,8 +21,6 @@ def index():
     locations = Location.query.all()
     return render_template('index.html', locations=locations)
 
-
-
 @app.route('/location/<int:id>')
 def location_forecast(id):
     location = Location.query.get_or_404(id)
@@ -117,5 +115,3 @@ def delete_location(id):
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
-
-
