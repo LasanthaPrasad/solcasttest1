@@ -8,7 +8,9 @@ from models import db, Location, Forecast
 from datetime import datetime
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///solar_forecast.db')
+
+# Update the database URI configuration
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', '').replace('postgres://', 'postgresql://')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
@@ -18,6 +20,8 @@ SOLCAST_API_KEY = os.environ.get('SOLCAST_API_KEY')
 def index():
     locations = Location.query.all()
     return render_template('index.html', locations=locations)
+
+
 
 @app.route('/location/<int:id>')
 def location_forecast(id):
@@ -113,3 +117,5 @@ def delete_location(id):
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
+
+
